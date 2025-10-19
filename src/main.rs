@@ -1,4 +1,5 @@
 use clap::Parser;
+use rayon::prelude::*;
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::fs;
@@ -42,15 +43,15 @@ fn main() -> anyhow::Result<()> {
     // Find all audio files recursively
     let audio_files = find_audio_files(&args.input)?;
 
-    // Convert each file
-    for input_path in audio_files.clone() {
-        convert_audio_file(&args, &input_path)?;
-    }
+    let total_files = audio_files.len();
+    audio_files.par_iter().for_each(|input_path| {
+        if let Err(e) = convert_audio_file(&args, input_path) {
+            eprintln!("Failed to convert {}: {}", input_path.display(), e);
+        }
+    });
 
-    println!(
-        "Conversion complete. Processed {} files.",
-        audio_files.len()
-    );
+    println!("Conversion complete. Processed {} files.", total_files);
+
     Ok(())
 }
 
@@ -117,7 +118,7 @@ fn convert_audio_file(args: &Args, input_path: &Path) -> anyhow::Result<()> {
         .status()?;
 
     if !status.success() {
-        anyhow::bail!(
+        println!(
             "FFmpeg failed for {} with status: {}",
             input_path.display(),
             status
