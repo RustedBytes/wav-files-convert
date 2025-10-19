@@ -20,8 +20,12 @@ struct Args {
     ffmpeg_bin: PathBuf,
 }
 
-const AUDIO_EXTENSIONS: &[&str] = &[
-    "mp3", "wav", "flac", "ogg", "m4a", "aac", "wma", "aiff", "au", "mp2",
+const EXTENSIONS: &[&str] = &[
+    // Audio
+    "mp3", "wav", "flac", "ogg", "m4a", "aac", "wma", "aiff", "au", "mp2", "opus",
+    // Video
+    "mp4", "webm", "mov", "avi", "flv", "wmv", "mkv", "3gp", "3g2", "mpeg", "mpg", "mts", "m2ts",
+    "ts", "vob", "ogv", "divx", "xvid",
 ];
 
 fn main() -> anyhow::Result<()> {
@@ -53,10 +57,7 @@ fn main() -> anyhow::Result<()> {
 /// Recursively finds all audio files in the given directory.
 fn find_audio_files(dir: &Path) -> anyhow::Result<Vec<PathBuf>> {
     let mut files = Vec::new();
-    let extensions_set: HashSet<&OsStr> = AUDIO_EXTENSIONS
-        .iter()
-        .map(|&ext| OsStr::new(ext))
-        .collect();
+    let extensions_set: HashSet<&OsStr> = EXTENSIONS.iter().map(|&ext| OsStr::new(ext)).collect();
 
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
